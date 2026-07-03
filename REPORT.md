@@ -29,9 +29,9 @@ bash scripts/download_data.sh
 python run_evaluation.py
 ```
 
-See `outputs/metrics_summary.csv` for your exact results.
+Results are written to `outputs/metrics_summary.csv` and charted in `outputs/`.
 
-## Results (measured on this machine)
+## Results
 
 Mean ± std over 10 iterations (100 users × 20 recs each):
 
@@ -42,64 +42,48 @@ Mean ± std over 10 iterations (100 users × 20 recs each):
 | Random | 14.73 ± 0.09 | **0.186 ± 0.001** | 18.58 ± 0.57 |
 | Most popular | 8.87 ± 0.05 | 0.013 ± 0.002 | 7.49 ± 0.12 |
 
-**Takeaways from these runs:**
+## Interpretation
 
-- **Most popular** is safest and most familiar (lowest novelty, lowest era spread, narrow catalog reach).
-- **Random** explores the catalog widest (~19% of all movies touched across batches) but is not personalized.
-- **Personal KNN** balances personalization with discovery — strong temporal diversity and mid-range coverage.
-- **Personal Top-N** is the most novel but barely expands catalog coverage (repeated safe picks within user taste).
+### Novelty
 
-## Expected findings (typical pattern)
+- **Most popular** scores lowest — it keeps recommending the same widely rated hits.
+- **Personal Top-N** and **Personal KNN** score highest — personalization surfaces less mainstream items aligned with user taste.
+- **Random** is high but not useful on its own — novelty without relevance.
 
-These patterns match standard recommender literature and what this codebase measures:
+### Catalog coverage
 
-### Novelty — usually wins: **Personal KNN** or **Random**
+- **Random** reaches the widest slice of the catalog (~19% of all movies touched across batches).
+- **Most popular** has the lowest coverage — a small set of blockbusters dominates.
+- **Personal KNN** sits in the middle; **Personal Top-N** barely expands coverage despite high novelty.
 
-- **Most popular** scores **lowest** — it keeps recommending the same hits everyone already knows.
-- **Personal KNN** often scores **high** — collaborative filtering surfaces less mainstream items that similar users liked.
-- **Random** is high but **not useful** for users — high novelty with no personalization.
+### Temporal diversity
 
-### Catalog coverage — usually wins: **Random**, then personalized methods
+- **Personal KNN** recommends titles spread across the widest range of release years.
+- **Most popular** concentrates on well-known films from a narrower era band.
 
-- **Random** reaches the **widest** slice of the catalog (by design).
-- **Most popular** has the **lowest** coverage — the same top movies dominate.
-- **Personal Top-N** and **KNN** sit in the middle — personalized but still somewhat concentrated.
+### Summary
 
-## Which algorithm is “best”?
+| Goal | Strongest option in this evaluation |
+|------|-------------------------------------|
+| Familiar, broadly appealing picks (e.g. a “Trending” row) | **Most popular** |
+| Personalized lists for returning users | **Personal KNN** or **Personal Top-N** |
+| Unbiased baseline | **Random** |
+| Balance of personalization and discovery | **Personal KNN** |
 
-**It depends on the product goal:**
-
-| Goal | Best choice |
-|------|-------------|
-| Maximize engagement on known hits (e.g. homepage “Trending”) | **Most popular** |
-| Personalized experience for returning users | **Personal KNN** or **Personal Top-N** |
-| Research baseline | **Random** |
-| Balance discovery + personalization | **Personal KNN** — good default in this project |
-
-For a **job interview**, the strong answer is not “KNN always wins” but:
-
-> “Most popular optimizes familiarity; KNN trades some popularity for personalization and novelty. I’d A/B test with click-through and diversity metrics in production.”
+There is no single winner. **Most popular** optimizes familiarity; **KNN** trades some popularity for personalization, novelty, and era variety. In a production setting, the right choice depends on the product goal and should be validated with user behavior metrics.
 
 ## Streamlit demo
 
-`app.py` includes:
+`app.py` complements the offline evaluation with qualitative exploration:
 
-- **Compare algorithms** — four columns for the same user, with novelty + genre charts
+- **Compare algorithms** — four columns for the same user, with novelty metrics and genre charts
 - **Filter bubble** — slider blending Personal KNN with Most popular
 - **Blind taste test** — pick a list, then reveal which algorithm produced it
 - **User personas** — e.g. Heavy rater, Blockbuster fan, Niche explorer
 
-Useful for qualitative UX review (“does this list make sense given their history?”). That connects the ML work to **HCI / UX research**, which fits cognitive science.
-
-## Next steps (portfolio polish)
-
-- [x] Run evaluation and paste mean metrics into this file
-- [ ] Add 1–2 screenshots of the Streamlit app to README
-- [ ] Deploy demo on [Streamlit Community Cloud](https://streamlit.io/cloud) (optional)
-- [ ] Make repo **public** when ready to link from portfolio / LinkedIn
+Useful for asking whether a recommendation list makes sense given a user's rating history.
 
 ## References
 
-- Harper & Konstan (2015) — MovieLens datasets
-- Ekstrand, Konstan & Terveen — LensKit documentation
-- Course: cognitive science ML / recommender systems module
+- Harper, F. M., & Konstan, J. A. (2015). The MovieLens Datasets: History and Context. *ACM Transactions on Interactive Intelligent Systems.*
+- Ekstrand, M. D., Konstan, J. A., & Terveen, L. [LensKit documentation](https://lenskit.org/)
