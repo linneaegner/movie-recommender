@@ -31,6 +31,12 @@ streamlit run app.py
 
 Pick a user and algorithm → see recommended movies and a sample of their rating history.
 
+The demo has three tabs:
+
+- **Compare algorithms** — side-by-side lists + genre chart
+- **Filter bubble** — blend personalized KNN with popular hits
+- **Blind taste test** — pick a list, reveal the algorithm
+
 ### Offline evaluation
 
 ```bash

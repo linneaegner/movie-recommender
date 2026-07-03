@@ -9,7 +9,12 @@ This project compares four algorithms on MovieLens and measures:
 | Metric | What it means | Higher is… |
 |--------|----------------|------------|
 | **Novelty** | How *unpopular* recommended items are (self-information) | More surprising / niche picks |
-| **Item coverage** | Share of the full catalog that gets recommended | Broader exploration |
+| **Item coverage** | Share of the full catalog that gets recommended (batch scale) | Broader exploration |
+| **Temporal diversity** | Spread of release years among recommended items | More era variety |
+
+### Why coverage looks tiny in the Streamlit app
+
+Catalog coverage is `unique recommended movies ÷ 9,742 movies`. One user receiving 8 picks can cover at most **~0.08%** of the catalog, so values like `0.001` are expected. The metric is meaningful when many users are evaluated together — see results below.
 
 ## Setup
 
@@ -25,6 +30,24 @@ python run_evaluation.py
 ```
 
 See `outputs/metrics_summary.csv` for your exact results.
+
+## Results (measured on this machine)
+
+Mean ± std over 10 iterations (100 users × 20 recs each):
+
+| Algorithm | Novelty ↑ | Catalog coverage ↑ | Temporal diversity ↑ |
+|-----------|-----------|--------------------|----------------------|
+| Personal Top-N (bias) | **16.38 ± 0.60** | 0.002 ± 0.000 | 14.80 ± 4.60 |
+| Personal KNN | 15.23 ± 0.49 | 0.043 ± 0.014 | **20.97 ± 1.58** |
+| Random | 14.73 ± 0.09 | **0.186 ± 0.001** | 18.58 ± 0.57 |
+| Most popular | 8.87 ± 0.05 | 0.013 ± 0.002 | 7.49 ± 0.12 |
+
+**Takeaways from these runs:**
+
+- **Most popular** is safest and most familiar (lowest novelty, lowest era spread, narrow catalog reach).
+- **Random** explores the catalog widest (~19% of all movies touched across batches) but is not personalized.
+- **Personal KNN** balances personalization with discovery — strong temporal diversity and mid-range coverage.
+- **Personal Top-N** is the most novel but barely expands catalog coverage (repeated safe picks within user taste).
 
 ## Expected findings (typical pattern)
 
@@ -59,11 +82,18 @@ For a **job interview**, the strong answer is not “KNN always wins” but:
 
 ## Streamlit demo
 
-`app.py` lets you inspect **one user at a time** — useful for qualitative UX review (“does this list make sense given their history?”). That connects the ML work to **HCI / UX research**, which fits cognitive science.
+`app.py` includes:
+
+- **Compare algorithms** — four columns for the same user, with novelty + genre charts
+- **Filter bubble** — slider blending Personal KNN with Most popular
+- **Blind taste test** — pick a list, then reveal which algorithm produced it
+- **User personas** — e.g. Heavy rater, Blockbuster fan, Niche explorer
+
+Useful for qualitative UX review (“does this list make sense given their history?”). That connects the ML work to **HCI / UX research**, which fits cognitive science.
 
 ## Next steps (portfolio polish)
 
-- [ ] Run evaluation and paste your mean metrics into this file
+- [x] Run evaluation and paste mean metrics into this file
 - [ ] Add 1–2 screenshots of the Streamlit app to README
 - [ ] Deploy demo on [Streamlit Community Cloud](https://streamlit.io/cloud) (optional)
 - [ ] Make repo **public** when ready to link from portfolio / LinkedIn

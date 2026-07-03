@@ -29,3 +29,24 @@ def load_movielens(data_dir: Path | None = None) -> tuple[pd.DataFrame, pd.DataF
 
 def movie_titles(movies: pd.DataFrame) -> dict[int, str]:
     return movies.set_index("item")["title"].to_dict()
+
+
+def split_genres(genre_string: str) -> list[str]:
+    """Split MovieLens pipe-delimited genre string into individual genres."""
+    if not genre_string or genre_string == "(no genres listed)":
+        return []
+    return genre_string.split("|")
+
+
+def genre_profile(item_ids: pd.Series | list[int], movies: pd.DataFrame) -> pd.Series:
+    """Return normalized genre proportions for a set of items."""
+    subset = movies[movies["item"].isin(item_ids)]
+    genres: list[str] = []
+    for genre_string in subset["genres"]:
+        genres.extend(split_genres(genre_string))
+
+    if not genres:
+        return pd.Series(dtype=float)
+
+    counts = pd.Series(genres).value_counts()
+    return (counts / counts.sum()).sort_values(ascending=False)

@@ -2,10 +2,15 @@ import numpy as np
 import pandas as pd
 from lenskit import batch
 
-from src.metrics import item_catalog_coverage, novelty, simulate_user_interactions
+from src.metrics import (
+    item_catalog_coverage,
+    novelty,
+    simulate_user_interactions,
+    temporal_diversity,
+)
 from src.models import ALGORITHM_LABELS, build_recommenders
 
-METRICS = ("novelty", "item_coverage")
+METRICS = ("novelty", "item_coverage", "temporal_diversity")
 
 
 def run_evaluation(
@@ -43,6 +48,9 @@ def run_evaluation(
         for name, recs in recommendations.items():
             iteration_metrics[f"novelty_{name}"] = novelty(recs, working_ratings)
             iteration_metrics[f"item_coverage_{name}"] = item_catalog_coverage(
+                recs, movies
+            )
+            iteration_metrics[f"temporal_diversity_{name}"] = temporal_diversity(
                 recs, movies
             )
 

@@ -18,6 +18,16 @@ def item_catalog_coverage(recommendations: pd.DataFrame, movies: pd.DataFrame) -
     return unique_items / len(movies)
 
 
+def catalog_coverage_summary(
+    recommendations: pd.DataFrame, movies: pd.DataFrame
+) -> str:
+    """Human-readable catalog coverage for UI and reports."""
+    unique_items = recommendations["item"].nunique()
+    total = len(movies)
+    pct = 100 * unique_items / total
+    return f"{unique_items:,} of {total:,} movies ({pct:.2f}%)"
+
+
 def novelty(recommendations: pd.DataFrame, ratings: pd.DataFrame) -> float:
     """Average self-information of recommended items (higher = less popular)."""
     item_popularity = ratings.groupby("item").size()
