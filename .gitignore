@@ -1,1 +1,17 @@
-ml-latest-small/*
+# MovieLens dataset (download with scripts/download_data.sh)
+ml-latest-small/
+*.zip
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.Python
+
+# Evaluation outputs (regenerate with run_evaluation.py)
+outputs/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
