@@ -51,7 +51,7 @@ def get_recommendations(algorithm: str, user_id: int, n_recs: int):
     ratings_df, movies_df = load_movielens()
     model = build_recommenders()[algorithm]
     model.fit(ratings_df)
-    recs = batch.recommend(model, [user_id], n_recs)
+    recs = batch.recommend(model, [user_id], n_recs, n_jobs=1)
     return recs, movie_titles(movies_df), ratings_df, movies_df
 
 

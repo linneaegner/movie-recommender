@@ -1,4 +1,5 @@
 from lenskit.algorithms import Recommender, basic
+from lenskit.algorithms.user_knn import UserUser
 
 ALGORITHM_LABELS = {
     "random": "Random",
@@ -12,7 +13,7 @@ def build_recommenders() -> dict:
     """Create the four algorithms compared in the course project."""
     return {
         "random": basic.Random(),
-        "most_popular": basic.MostPopular(),
-        "personal_topn": Recommender.adapt(basic.TopN(basic.Bias())),
-        "personal_knn": Recommender.adapt(basic.KNN(basic.Bias())),
+        "most_popular": basic.Popular(),
+        "personal_topn": Recommender.adapt(basic.Bias()),
+        "personal_knn": Recommender.adapt(UserUser(20)),
     }

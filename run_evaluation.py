@@ -28,7 +28,9 @@ def main() -> None:
     print("\nMean metrics over all iterations:\n")
     for metric in METRICS:
         print(metric.replace("_", " ").title())
-        subset = summary[summary["metric"] == metric].sort_values("mean", ascending=False)
+        subset = summary.loc[summary["metric"] == metric].sort_values(
+            by="mean", ascending=False
+        )
         for _, row in subset.iterrows():
             print(f"  {row['label']:28} {row['mean']:.3f} (±{row['std']:.3f})")
         print(f"  → Best: {ALGORITHM_LABELS[best_algorithm(summary, metric)]}\n")
