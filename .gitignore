@@ -11,6 +11,10 @@ __pycache__/
 # Evaluation outputs (regenerate with run_evaluation.py)
 outputs/
 
+# Secrets
+.env
+.env.*
+
 # OS / IDE
 .DS_Store
 .idea/
