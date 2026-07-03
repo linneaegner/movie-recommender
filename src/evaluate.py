@@ -21,6 +21,7 @@ def run_evaluation(
     n_users: int = 100,
     n_items: int = 20,
     seed: int = 42,
+    on_progress=None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Train recommenders over multiple iterations with simulated feedback.
@@ -32,6 +33,9 @@ def run_evaluation(
     history: list[dict[str, float]] = []
 
     for iteration in range(n_iterations):
+        if on_progress:
+            on_progress(iteration + 1, n_iterations)
+
         for model in recommenders.values():
             model.fit(working_ratings)
 
@@ -40,7 +44,9 @@ def run_evaluation(
         )
 
         recommendations = {
-            name: batch.recommend(recommenders[name], selected_users, n_items)
+            name: batch.recommend(
+                recommenders[name], selected_users, n_items, n_jobs=1
+            )
             for name in recommenders
         }
 

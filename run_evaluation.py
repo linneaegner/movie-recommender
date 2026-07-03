@@ -19,7 +19,13 @@ def main() -> None:
         )
 
     ratings, movies = load_movielens()
-    metrics_df, summary = run_evaluation(ratings, movies)
+    metrics_df, summary = run_evaluation(
+        ratings,
+        movies,
+        on_progress=lambda current, total: print(
+            f"  iteration {current}/{total}", flush=True
+        ),
+    )
 
     OUTPUT_DIR.mkdir(exist_ok=True)
     metrics_df.to_csv(OUTPUT_DIR / "metrics_by_iteration.csv", index=False)

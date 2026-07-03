@@ -2,16 +2,21 @@
 
 import random
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 from lenskit import batch
 
+from src.algorithm_guide import ALGORITHM_PROFILES
 from src.blend import blend_recommendations
 from src.data import dataset_ready, genre_profile, load_movielens, movie_titles
-from src.metrics import item_catalog_coverage, novelty
+from src.metrics import genre_match_rate, novelty
 from src.models import ALGORITHM_LABELS, build_recommenders
 from src.personas import user_personas
+
+OUTPUT_DIR = Path(__file__).resolve().parent / "outputs"
 
 st.set_page_config(page_title="Movie Recommender", page_icon="🎬", layout="wide")
 
@@ -140,11 +145,30 @@ def plot_genre_comparison(
 
 
 def render_metric_caption(recs: pd.DataFrame) -> None:
+    match = genre_match_rate(recs, history_items, movies)
     st.caption(
         f"Novelty {novelty(recs, ratings):.2f} · "
-        f"{recs['item'].nunique()} unique picks · "
-        f"Catalog reach {item_catalog_coverage(recs, movies):.4f}"
+        f"Genre match {match:.0%} (overlap with this user's top genres)"
     )
+
+
+@st.cache_data
+def load_offline_summaries() -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+    ranking_path = OUTPUT_DIR / "ranking_summary.csv"
+    diversity_path = OUTPUT_DIR / "metrics_summary.csv"
+    ranking = pd.read_csv(ranking_path) if ranking_path.exists() else None
+    diversity = pd.read_csv(diversity_path) if diversity_path.exists() else None
+    return ranking, diversity
+
+
+def offline_metric(summary: pd.DataFrame | None, metric: str, algorithm: str) -> str:
+    if summary is None:
+        return "—"
+    row = summary[(summary["metric"] == metric) & (summary["algorithm"] == algorithm)]
+    if row.empty:
+        return "—"
+    value = row.iloc[0]
+    return f"{value['mean']:.3f}"
 
 
 recommendations = recommend_all(user_id, n_recs)
@@ -153,8 +177,8 @@ user_history = ratings[ratings["user"] == user_id]
 history_items = user_history["item"]
 history_profile = genre_profile(history_items, movies)
 
-compare_tab, blend_tab, blind_tab = st.tabs(
-    ["Compare algorithms", "Filter bubble", "Blind taste test"]
+compare_tab, blend_tab, blind_tab, guide_tab = st.tabs(
+    ["Compare algorithms", "Filter bubble", "Blind taste test", "Algorithm guide"]
 )
 
 with compare_tab:
@@ -290,6 +314,53 @@ with blind_tab:
             f"You picked **{ALGORITHM_LABELS[choice]}**. "
             f"The other list was **{ALGORITHM_LABELS[other]}**."
         )
+
+with guide_tab:
+    st.subheader("Are the recommendations good?")
+    st.write(
+        "Two layers of evaluation: **offline quality** (do picks match held-out "
+        "ratings across all users?) and **per-user taste fit** (genre match in "
+        "the Compare tab). Neither alone tells the full story."
+    )
+
+    ranking_summary, diversity_summary = load_offline_summaries()
+    if ranking_summary is None or diversity_summary is None:
+        st.info(
+            "Run `python run_all_evaluations.py` to generate offline score tables."
+        )
+    else:
+        scorecard = []
+        for name in ALGORITHM_PROFILES:
+            scorecard.append(
+                {
+                    "Algorithm": ALGORITHM_PROFILES[name].label,
+                    "NDCG@10": offline_metric(ranking_summary, "ndcg", name),
+                    "Hit rate": offline_metric(ranking_summary, "hit", name),
+                    "Novelty": offline_metric(diversity_summary, "novelty", name),
+                    "Coverage": offline_metric(
+                        diversity_summary, "item_coverage", name
+                    ),
+                }
+            )
+        st.dataframe(pd.DataFrame(scorecard), hide_index=True, width="stretch")
+
+    st.divider()
+    st.subheader("Pros & cons by approach")
+
+    for profile in ALGORITHM_PROFILES.values():
+        with st.expander(profile.label, expanded=False):
+            st.markdown(f"**Idea:** {profile.idea}")
+            st.markdown(f"**Best for:** {profile.best_for}")
+            st.markdown(f"**Offline quality:** {profile.offline_quality}")
+            left, right = st.columns(2)
+            with left:
+                st.markdown("**Pros**")
+                for pro in profile.pros:
+                    st.markdown(f"- {pro}")
+            with right:
+                st.markdown("**Cons**")
+                for con in profile.cons:
+                    st.markdown(f"- {con}")
 
 with st.expander("User rating history (sample)"):
     history = user_history.merge(movies, on="item").sort_values(

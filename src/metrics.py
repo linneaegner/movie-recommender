@@ -38,6 +38,33 @@ def novelty(recommendations: pd.DataFrame, ratings: pd.DataFrame) -> float:
     return float(scores.mean())
 
 
+def genre_match_rate(
+    recommendations: pd.DataFrame,
+    user_items: pd.Series,
+    movies: pd.DataFrame,
+    *,
+    top_user_genres: int = 5,
+) -> float:
+    """
+    Share of recommended items that match at least one of the user's top genres.
+    Per-user signal for whether a list aligns with taste (0–1).
+    """
+    from src.data import genre_profile, split_genres
+
+    user_genres = set(genre_profile(user_items, movies).head(top_user_genres).index)
+    if not user_genres:
+        return 0.0
+
+    movie_genres = movies.set_index("item")["genres"]
+    matches = 0
+    for item in recommendations["item"]:
+        genres = set(split_genres(movie_genres.get(item, "")))
+        if user_genres & genres:
+            matches += 1
+
+    return matches / len(recommendations) if len(recommendations) else 0.0
+
+
 def mean_interactions(recommendations: pd.DataFrame, ratings: pd.DataFrame) -> float:
     """Average historical interaction count for recommended items."""
     item_interactions = ratings.groupby("item").size()
