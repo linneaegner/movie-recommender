@@ -148,7 +148,6 @@ Run `python run_all_evaluations.py` to regenerate `outputs/algorithm_scorecard.m
 
 - **Compare algorithms** — four columns for the same user, with novelty metrics and genre charts
 - **Filter bubble** — slider blending Personal KNN with Most popular
-- **Blind taste test** — pick a list, then reveal which algorithm produced it
 - **User personas** — e.g. Heavy rater, Blockbuster fan, Niche explorer
 - **Algorithm guide** — offline quality table + pros/cons for each approach
 

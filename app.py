@@ -1,7 +1,5 @@
 """Streamlit demo: compare recommender algorithms side by side."""
 
-import random
-
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -177,8 +175,8 @@ user_history = ratings[ratings["user"] == user_id]
 history_items = user_history["item"]
 history_profile = genre_profile(history_items, movies)
 
-compare_tab, blend_tab, blind_tab, guide_tab = st.tabs(
-    ["Compare algorithms", "Filter bubble", "Blind taste test", "Algorithm guide"]
+compare_tab, blend_tab, guide_tab = st.tabs(
+    ["Compare algorithms", "Filter bubble", "Algorithm guide"]
 )
 
 with compare_tab:
@@ -261,59 +259,6 @@ with blend_tab:
                 hide_index=True,
                 width="stretch",
             )
-
-with blind_tab:
-    st.subheader("Which list would you click?")
-    st.write("Two anonymous lists — pick the one you'd rather watch from.")
-
-    if "blind_algorithms" not in st.session_state:
-        st.session_state.blind_algorithms = random.sample(
-            list(ALGORITHM_LABELS.keys()), 2
-        )
-        st.session_state.blind_revealed = False
-
-    left_name, right_name = st.session_state.blind_algorithms
-    left_recs = recommendations[left_name]
-    right_recs = recommendations[right_name]
-
-    left_col, right_col = st.columns(2)
-    with left_col:
-        st.markdown("**List A**")
-        st.dataframe(
-            recommendation_rows(left_recs, titles),
-            hide_index=True,
-            width="stretch",
-        )
-    with right_col:
-        st.markdown("**List B**")
-        st.dataframe(
-            recommendation_rows(right_recs, titles),
-            hide_index=True,
-            width="stretch",
-        )
-
-    pick_left, pick_right, new_round = st.columns(3)
-    if pick_left.button("I'd pick List A", width="stretch"):
-        st.session_state.blind_revealed = True
-        st.session_state.blind_choice = left_name
-    if pick_right.button("I'd pick List B", width="stretch"):
-        st.session_state.blind_revealed = True
-        st.session_state.blind_choice = right_name
-    if new_round.button("New round", width="stretch"):
-        st.session_state.blind_algorithms = random.sample(
-            list(ALGORITHM_LABELS.keys()), 2
-        )
-        st.session_state.blind_revealed = False
-        st.session_state.pop("blind_choice", None)
-        st.rerun()
-
-    if st.session_state.get("blind_revealed"):
-        choice = st.session_state["blind_choice"]
-        other = right_name if choice == left_name else left_name
-        st.success(
-            f"You picked **{ALGORITHM_LABELS[choice]}**. "
-            f"The other list was **{ALGORITHM_LABELS[other]}**."
-        )
 
 with guide_tab:
     st.subheader("Are the recommendations good?")

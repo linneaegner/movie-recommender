@@ -42,11 +42,10 @@ streamlit run app.py
 
 Open the URL shown in the terminal (usually `http://localhost:8501`).
 
-The demo has four tabs:
+The demo has three tabs:
 
 - **Compare algorithms** — side-by-side lists, novelty metrics, and genre charts for the same user
 - **Filter bubble** — blend personalized KNN with popular hits using a slider
-- **Blind taste test** — pick a list, then reveal which algorithm produced it
 - **Algorithm guide** — are recommendations good? pros & cons per approach
 
 Users are labeled with viewing personas (e.g. *Heavy rater*, *Niche explorer*) derived from their rating history.
